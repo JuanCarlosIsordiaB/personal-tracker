@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+:root {
+  --ink:    #181B21;
+  --ink2:   #59616E;
+  --ink3:   #949BA6;
+  --bg:     #F3F5F8;
+  --card:   #FFFFFF;
+  --track:  #E9ECF1;
+  --line:   #E7EAEF;
+  --line2:  #EEF1F5;
+  --accent: #2A6FDB;
+
+  --verde-fg:    #138A4E;
+  --verde-bg:    #E6F4EC;
+  --verde-dot:   #1FA862;
+  --amarillo-fg: #B07A00;
+  --amarillo-bg: #FBF1D8;
+  --amarillo-dot:#E0A000;
+  --rojo-fg:     #C5392F;
+  --rojo-bg:     #FBE8E6;
+  --rojo-dot:    #E0463B;
+
+  --cat-avion:    #3B82C4;
+  --cat-hospedaje:#7A6CE0;
+  --cat-comida:   #E0903B;
+  --cat-extra:    #5BA88A;
+
+  --card-shadow: 0 1px 2px rgba(20,28,45,0.04), 0 6px 20px -8px rgba(20,28,45,0.08);
+}
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--ink);
+  --font-sans: 'Hanken Grotesk', system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Hanken Grotesk', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@keyframes sheetIn {
+  from { transform: translateY(38px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+
+/* ── Responsive utilities ───────────────────────────── */
+
+.page-container { padding: 32px 32px 48px; max-width: 720px; }
+@media (max-width: 767px) {
+  .page-container { padding: 20px 16px 100px; max-width: 100%; }
+}
+
+.grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 767px) {
+  .grid-2col { grid-template-columns: 1fr; }
+}
+
+.sidebar-nav { display: flex !important; flex-direction: column; }
+@media (max-width: 767px) { .sidebar-nav { display: none !important; } }
+
+.bottom-nav { display: none; }
+@media (max-width: 767px) {
+  .bottom-nav {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    width: 100%;
+  }
+}
+
+.sheet-content { max-width: 640px; width: 100%; align-self: center; }
+@media (max-width: 767px) { .sheet-content { max-width: 100%; } }
+
+.rhythm-headline { font-size: 27px; }
+@media (max-width: 767px) { .rhythm-headline { font-size: 22px; } }
