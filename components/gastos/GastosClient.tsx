@@ -60,6 +60,7 @@ export function GastosClient({
 }: GastosClientProps) {
   const [filter, setFilter] = useState('todos')
   const [showAdd, setShowAdd] = useState(false)
+  const [editingGasto, setEditingGasto] = useState<Gasto | null>(null)
 
   const filtered = gastos
     .filter((g) => filter === 'todos' || g.categoria === filter)
@@ -300,6 +301,23 @@ export function GastosClient({
                 >
                   {money(g.monto)}
                 </div>
+                <button
+                  onClick={() => setEditingGasto(g)}
+                  style={{
+                    border: 'none',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    padding: '4px 2px',
+                    color: '#C0C5CE',
+                    fontSize: 18,
+                    lineHeight: 1,
+                    flexShrink: 0,
+                    letterSpacing: 1,
+                  }}
+                  aria-label="Editar gasto"
+                >
+                  ···
+                </button>
               </div>
             )
           })
@@ -310,6 +328,13 @@ export function GastosClient({
         open={showAdd}
         onClose={() => setShowAdd(false)}
         viajes={viajes}
+      />
+
+      <AddExpenseSheet
+        open={editingGasto !== null}
+        onClose={() => setEditingGasto(null)}
+        viajes={viajes}
+        gasto={editingGasto ?? undefined}
       />
     </>
   )

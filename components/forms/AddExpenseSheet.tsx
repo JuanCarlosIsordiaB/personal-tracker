@@ -1,13 +1,14 @@
 'use client'
 
-import { useActionState, useState, useEffect } from 'react'
+import { useActionState, useState, useEffect, useRef, useTransition } from 'react'
 import { Sheet } from '@/components/shell/Sheet'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 import { CatIcon, CAT_LABELS, CAT_COLORS } from '@/components/ui/Icon'
-import { createGasto, type GastoState } from '@/lib/actions/gastos'
+import { createGasto, updateGasto, deleteGasto, type GastoState } from '@/lib/actions/gastos'
 import type { CatKey } from '@/components/ui/Icon'
 
 const ACCENT = '#2A6FDB'
+const DANGER = '#C5392F'
 const CATS: CatKey[] = ['hospedaje', 'avion', 'comida', 'extra']
 
 const inputStyle: React.CSSProperties = {
@@ -24,24 +25,10 @@ const inputStyle: React.CSSProperties = {
   fontWeight: 500,
 }
 
-function Field({
-  label,
-  children,
-}: {
-  label: string
-  children: React.ReactNode
-}) {
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ marginBottom: 16 }}>
-      <div
-        style={{
-          fontSize: 12.5,
-          fontWeight: 680,
-          color: '#59616E',
-          marginBottom: 7,
-          letterSpacing: 0.1,
-        }}
-      >
+      <div style={{ fontSize: 12.5, fontWeight: 680, color: '#59616E', marginBottom: 7, letterSpacing: 0.1 }}>
         {label}
       </div>
       {children}
@@ -56,12 +43,22 @@ interface Viaje {
   fechaSalida: string
 }
 
+interface GastoEdit {
+  id: string
+  monto: number
+  categoria: string
+  fecha: string
+  viaje_id?: string | null
+  nota?: string | null
+}
+
 interface AddExpenseSheetProps {
   open: boolean
   onClose: () => void
   viajes?: Viaje[]
   presetViajeId?: string
   presetFecha?: string
+  gasto?: GastoEdit
 }
 
 const initialState: GastoState = {}
@@ -72,48 +69,73 @@ export function AddExpenseSheet({
   viajes = [],
   presetViajeId,
   presetFecha,
+  gasto,
 }: AddExpenseSheetProps) {
+  const isEdit = !!gasto
   const today = new Date().toISOString().split('T')[0]
-  const [state, action] = useActionState(createGasto, initialState)
+
+  const [createState, createAction] = useActionState(createGasto, initialState)
+  const [updateState, updateAction] = useActionState(updateGasto, initialState)
+  const state = isEdit ? updateState : createState
+  const action = isEdit ? updateAction : createAction
+
   const [monto, setMonto] = useState('')
   const [cat, setCat] = useState<CatKey>('comida')
   const [fecha, setFecha] = useState(presetFecha ?? today)
   const [viajeId, setViajeId] = useState(presetViajeId ?? '')
   const [nota, setNota] = useState('')
 
+  const submitted = useRef(false)
+  const [isDeleting, startDelete] = useTransition()
+
   useEffect(() => {
     if (open) {
-      setMonto('')
-      setCat('comida')
-      setFecha(presetFecha ?? today)
-      setViajeId(presetViajeId ?? '')
-      setNota('')
+      submitted.current = false
+      if (gasto) {
+        setMonto(String(gasto.monto))
+        setCat(gasto.categoria as CatKey)
+        setFecha(gasto.fecha)
+        setViajeId(gasto.viaje_id ?? '')
+        setNota(gasto.nota ?? '')
+      } else {
+        setMonto('')
+        setCat('comida')
+        setFecha(presetFecha ?? today)
+        setViajeId(presetViajeId ?? '')
+        setNota('')
+      }
     }
-  }, [open, presetViajeId, presetFecha])
+  }, [open, gasto, presetViajeId, presetFecha])
+
+  useEffect(() => {
+    if (submitted.current && !state.errors && !state.message) {
+      submitted.current = false
+      onClose()
+    }
+  }, [state])
+
+  const handleDelete = () => {
+    if (!gasto) return
+    startDelete(async () => {
+      await deleteGasto(gasto.id)
+      onClose()
+    })
+  }
 
   const valid = parseFloat(monto) > 0
 
   return (
-    <Sheet open={open} onClose={onClose} title="Nuevo gasto">
-      <form action={action}>
+    <Sheet open={open} onClose={onClose} title={isEdit ? 'Editar gasto' : 'Nuevo gasto'}>
+      <form
+        action={action}
+        onSubmit={() => { submitted.current = true }}
+      >
+        {isEdit && <input type="hidden" name="id" value={gasto.id} />}
+
         {/* big amount input */}
         <div style={{ textAlign: 'center', padding: '8px 0 18px' }}>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'baseline',
-              gap: 2,
-            }}
-          >
-            <span
-              style={{
-                fontSize: 30,
-                fontWeight: 600,
-                color: valid ? '#181B21' : '#949BA6',
-              }}
-            >
-              $
-            </span>
+          <div style={{ display: 'inline-flex', alignItems: 'baseline', gap: 2 }}>
+            <span style={{ fontSize: 30, fontWeight: 600, color: valid ? '#181B21' : '#949BA6' }}>$</span>
             <input
               autoFocus
               type="number"
@@ -137,29 +159,15 @@ export function AddExpenseSheet({
               }}
             />
           </div>
-          <div
-            style={{
-              fontSize: 12.5,
-              color: '#949BA6',
-              fontWeight: 560,
-              marginTop: 2,
-            }}
-          >
+          <div style={{ fontSize: 12.5, color: '#949BA6', fontWeight: 560, marginTop: 2 }}>
             Se asigna al quarter por su fecha
           </div>
         </div>
 
-        {/* hidden field for cat (buttons control it) */}
         <input type="hidden" name="categoria" value={cat} />
 
         <Field label="Categoría">
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr 1fr 1fr',
-              gap: 8,
-            }}
-          >
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8 }}>
             {CATS.map((k) => {
               const on = cat === k
               return (
@@ -182,13 +190,7 @@ export function AddExpenseSheet({
                   }}
                 >
                   <CatIcon cat={k} size={21} />
-                  <span
-                    style={{
-                      fontSize: 11.5,
-                      fontWeight: 640,
-                      color: on ? '#181B21' : '#59616E',
-                    }}
-                  >
+                  <span style={{ fontSize: 11.5, fontWeight: 640, color: on ? '#181B21' : '#59616E' }}>
                     {CAT_LABELS[k]}
                   </span>
                 </button>
@@ -215,11 +217,7 @@ export function AddExpenseSheet({
                 name="viajeId"
                 value={viajeId}
                 onChange={(e) => setViajeId(e.target.value)}
-                style={{
-                  ...inputStyle,
-                  appearance: 'none',
-                  WebkitAppearance: 'none',
-                }}
+                style={{ ...inputStyle, appearance: 'none', WebkitAppearance: 'none' }}
               >
                 <option value="">Sin viaje</option>
                 {viajes.map((v) => (
@@ -244,21 +242,39 @@ export function AddExpenseSheet({
         </Field>
 
         {state?.message && (
-          <div
-            style={{
-              fontSize: 13,
-              color: '#C5392F',
-              marginBottom: 12,
-              fontWeight: 560,
-            }}
-          >
+          <div style={{ fontSize: 13, color: DANGER, marginBottom: 12, fontWeight: 560 }}>
             {state.message}
           </div>
         )}
 
         <SubmitButton disabled={!valid} accent={ACCENT}>
-          Guardar gasto
+          {isEdit ? 'Guardar cambios' : 'Guardar gasto'}
         </SubmitButton>
+
+        {isEdit && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={isDeleting}
+            style={{
+              marginTop: 10,
+              width: '100%',
+              border: 'none',
+              background: DANGER + '12',
+              color: DANGER,
+              borderRadius: 14,
+              height: 50,
+              fontSize: 15,
+              fontWeight: 660,
+              fontFamily: 'inherit',
+              cursor: isDeleting ? 'not-allowed' : 'pointer',
+              opacity: isDeleting ? 0.6 : 1,
+              transition: 'opacity .15s',
+            }}
+          >
+            {isDeleting ? 'Eliminando…' : 'Eliminar gasto'}
+          </button>
+        )}
       </form>
     </Sheet>
   )
