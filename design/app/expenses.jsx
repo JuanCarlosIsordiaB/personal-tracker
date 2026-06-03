@@ -2,11 +2,14 @@
    Gastos — lista, desglose por categoría y filtros
    ============================================================ */
 
-function ExpenseRow({ e, last, showTrip }) {
+function ExpenseRow({ e, last, showTrip, onEdit }) {
   const cat = TRK.CAT[e.cat];
   const trip = e.tripId ? TRK.TRIPS.find((t) => t.id === e.tripId) : null;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: last ? 'none' : '1px solid ' + C.line2 }}>
+    <div
+      onClick={onEdit ? () => onEdit(e.id) : undefined}
+      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: last ? 'none' : '1px solid ' + C.line2, cursor: onEdit ? 'pointer' : 'default' }}
+    >
       <div style={{ width: 38, height: 38, borderRadius: 11, background: cat.color + '16', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         <CatIcon cat={e.cat} size={19} />
       </div>
@@ -16,7 +19,10 @@ function ExpenseRow({ e, last, showTrip }) {
           {cat.label} · {TRK.fmtShort(e.fecha)}{showTrip && trip ? ' · ' + trip.ciudad : ''}
         </div>
       </div>
-      <div style={{ fontSize: 15.5, fontWeight: 700, color: C.ink, fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{TRK.money(e.monto)}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+        <div style={{ fontSize: 15.5, fontWeight: 700, color: C.ink, fontVariantNumeric: 'tabular-nums' }}>{TRK.money(e.monto)}</div>
+        {onEdit && <Icon name="chevR" size={15} color={C.ink3} />}
+      </div>
     </div>
   );
 }
@@ -46,7 +52,7 @@ function CatBreakdown({ totals, total, accent }) {
   );
 }
 
-function Expenses({ accent, onAdd }) {
+function Expenses({ accent, onAdd, onEditExpense }) {
   const [filter, setFilter] = React.useState('todos');
   const totals = TRK.catTotals();
   const total = TRK.gastado();
@@ -84,7 +90,7 @@ function Expenses({ accent, onAdd }) {
       </div>
 
       <Card pad={0}>
-        {filtered.map((e, i) => <ExpenseRow key={e.id} e={e} last={i === filtered.length - 1} showTrip />)}
+        {filtered.map((e, i) => <ExpenseRow key={e.id} e={e} last={i === filtered.length - 1} showTrip onEdit={onEditExpense} />)}
       </Card>
     </div>
   );

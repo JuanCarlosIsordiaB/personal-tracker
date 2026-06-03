@@ -155,7 +155,115 @@ function AddTripSheet({ open, onClose, accent, onSave }) {
   );
 }
 
-Object.assign(window, { AddExpenseSheet, AddTripSheet, DaySheet });
+Object.assign(window, { AddExpenseSheet, AddTripSheet, DaySheet, EditExpenseSheet });
+
+function EditExpenseSheet({ open, onClose, accent, expense, onSave, onDelete }) {
+  const [monto, setMonto] = React.useState('');
+  const [cat, setCat] = React.useState('comida');
+  const [fecha, setFecha] = React.useState(TRK.TODAY);
+  const [tripId, setTripId] = React.useState('');
+  const [nota, setNota] = React.useState('');
+  const [confirmDelete, setConfirmDelete] = React.useState(false);
+
+  React.useEffect(() => {
+    if (open && expense) {
+      setMonto(String(expense.monto));
+      setCat(expense.cat);
+      setFecha(expense.fecha);
+      setTripId(expense.tripId || '');
+      setNota(expense.nota || '');
+      setConfirmDelete(false);
+    }
+  }, [open, expense]);
+
+  if (!expense) return null;
+  const cats = ['hospedaje', 'avion', 'comida', 'extra'];
+  const valid = parseFloat(monto) > 0;
+  const q = TRK.quarterOf(fecha);
+
+  if (confirmDelete) {
+    return (
+      <Sheet open={open} onClose={onClose} title="Eliminar gasto" maxH={0.45}>
+        <div style={{ textAlign: 'center', padding: '12px 0 20px' }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>🗑️</div>
+          <div style={{ fontSize: 16, fontWeight: 640, color: C.ink, marginBottom: 6 }}>¿Eliminar este gasto?</div>
+          <div style={{ fontSize: 14, color: C.ink3, fontWeight: 540 }}>{TRK.money(expense.monto)} · {TRK.CAT[expense.cat].label}</div>
+        </div>
+        <button onClick={() => onDelete(expense.id)} style={{
+          width: '100%', border: 'none', borderRadius: 15, padding: '15px', marginBottom: 10,
+          background: '#C5392F', color: '#fff', fontSize: 16, fontWeight: 700,
+          fontFamily: 'inherit', cursor: 'pointer', letterSpacing: -0.2,
+        }}>Sí, eliminar</button>
+        <button onClick={() => setConfirmDelete(false)} style={{
+          width: '100%', border: 'none', borderRadius: 15, padding: '15px',
+          background: C.track, color: C.ink2, fontSize: 16, fontWeight: 640,
+          fontFamily: 'inherit', cursor: 'pointer',
+        }}>Cancelar</button>
+      </Sheet>
+    );
+  }
+
+  return (
+    <Sheet open={open} onClose={onClose} title="Editar gasto">
+      <div style={{ textAlign: 'center', padding: '8px 0 18px' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'baseline', gap: 2 }}>
+          <span style={{ fontSize: 30, fontWeight: 600, color: valid ? C.ink : C.ink3 }}>$</span>
+          <input
+            autoFocus type="number" inputMode="decimal" placeholder="0.00" value={monto}
+            onChange={(e) => setMonto(e.target.value)}
+            style={{ border: 'none', outline: 'none', background: 'transparent', fontFamily: 'inherit', fontSize: 46, fontWeight: 770, color: valid ? C.ink : C.ink3, width: 'auto', maxWidth: 220, letterSpacing: -1.5, textAlign: 'left' }}
+          />
+        </div>
+        <div style={{ fontSize: 12.5, color: C.ink3, fontWeight: 560, marginTop: 2 }}>Se asigna a {q.label} por su fecha</div>
+      </div>
+
+      <Field label="Categoría">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8 }}>
+          {cats.map((k) => {
+            const on = cat === k;
+            return (
+              <button key={k} onClick={() => setCat(k)} style={{
+                border: '1.5px solid ' + (on ? TRK.CAT[k].color : C.line), borderRadius: 14, padding: '12px 4px',
+                background: on ? TRK.CAT[k].color + '12' : C.card, cursor: 'pointer', fontFamily: 'inherit',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, transition: 'all .15s',
+              }}>
+                <CatIcon cat={k} size={21} />
+                <span style={{ fontSize: 11.5, fontWeight: 640, color: on ? C.ink : C.ink2 }}>{TRK.CAT[k].label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </Field>
+
+      <div style={{ display: 'flex', gap: 12 }}>
+        <div style={{ flex: 1 }}>
+          <Field label="Fecha"><input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} style={inputStyle} /></Field>
+        </div>
+        <div style={{ flex: 1 }}>
+          <Field label="Viaje (opcional)">
+            <select value={tripId} onChange={(e) => setTripId(e.target.value)} style={{ ...inputStyle, appearance: 'none', WebkitAppearance: 'none' }}>
+              <option value="">Sin viaje</option>
+              {TRK.TRIPS.map((t) => <option key={t.id} value={t.id}>{t.ciudad} · {TRK.fmtRange(t.llegada, t.salida)}</option>)}
+            </select>
+          </Field>
+        </div>
+      </div>
+
+      <Field label="Nota"><input type="text" placeholder="Ej. Hotel Roma · 5 noches" value={nota} onChange={(e) => setNota(e.target.value)} style={inputStyle} /></Field>
+
+      <PrimaryBtn accent={accent} disabled={!valid} onClick={() => {
+        onSave(expense.id, { cat, monto: parseFloat(monto), fecha, tripId: tripId || null, nota });
+        onClose();
+      }}>Guardar cambios</PrimaryBtn>
+
+      <button onClick={() => setConfirmDelete(true)} style={{
+        width: '100%', border: 'none', borderRadius: 15, padding: '13px', marginTop: 8,
+        background: 'transparent', color: '#C5392F', fontSize: 15, fontWeight: 640,
+        fontFamily: 'inherit', cursor: 'pointer',
+      }}>Eliminar gasto</button>
+    </Sheet>
+  );
+}
 
 // ---- Hoja de detalle de un día ------------------------------
 function DaySheet({ open, onClose, accent, day, onAddExpense }) {

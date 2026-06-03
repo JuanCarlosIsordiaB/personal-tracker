@@ -107,10 +107,11 @@ function App() {
   const accent = t.accent;
   const [tab, setTab] = React.useState('inicio');
   const [tripId, setTripId] = React.useState(null);
-  const [sheet, setSheet] = React.useState(null); // 'exp' | 'trip' | 'quarter' | 'day'
+  const [sheet, setSheet] = React.useState(null); // 'exp' | 'trip' | 'quarter' | 'day' | 'editExp'
   const [presetTrip, setPresetTrip] = React.useState(null);
   const [presetDate, setPresetDate] = React.useState(null);
   const [selectedDay, setSelectedDay] = React.useState(null);
+  const [editExpenseId, setEditExpenseId] = React.useState(null);
   const [bump, setBump] = React.useState(0);
 
   const s = React.useMemo(() => TRK.computeStatus(t.scenario), [t.scenario, bump]);
@@ -125,14 +126,17 @@ function App() {
   function tid_norm(x) { return x || null; }
   function saveExpense(e) { TRK.EXPENSES.push(e); setBump((b) => b + 1); }
   function saveTrip(tr) { TRK.TRIPS.push(tr); setBump((b) => b + 1); }
+  function openEditExpense(id) { setEditExpenseId(id); setSheet('editExp'); }
+  function handleUpdateExpense(id, changes) { TRK.updateExpense(id, changes); setBump((b) => b + 1); }
+  function handleDeleteExpense(id) { TRK.deleteExpense(id); setSheet(null); setBump((b) => b + 1); }
 
   let screen;
   if (tab === 'inicio') screen = <Dashboard s={s} accent={accent} viz={t.viz} setViz={(v) => setTweak('viz', v)} onNav={goTab} />;
   else if (tab === 'calendario') screen = <Calendar accent={accent} onDay={openDay} />;
   else if (tab === 'viajes') screen = tripId
-    ? <TripDetail tripId={tripId} accent={accent} onDay={openDay} onAddExpense={(id) => { setPresetDate(null); setPresetTrip(id); setSheet('exp'); }} />
+    ? <TripDetail tripId={tripId} accent={accent} onDay={openDay} onAddExpense={(id) => { setPresetDate(null); setPresetTrip(id); setSheet('exp'); }} onEditExpense={openEditExpense} />
     : <TripsList accent={accent} onOpen={openTrip} onAdd={() => setSheet('trip')} />;
-  else if (tab === 'gastos') screen = <Expenses accent={accent} onAdd={() => setSheet('exp')} />;
+  else if (tab === 'gastos') screen = <Expenses accent={accent} onAdd={() => setSheet('exp')} onEditExpense={openEditExpense} />;
 
   const showFab = !(tab === 'viajes' && !tripId);
   const fabAction = () => { setPresetDate(null); setPresetTrip(tab === 'viajes' && tripId ? tripId : null); setSheet('exp'); };
@@ -143,7 +147,7 @@ function App() {
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: C.bg, position: 'relative', overflow: 'hidden', fontFamily: "'Hanken Grotesk', system-ui, sans-serif" }}>
           <Header tab={tab} tripId={tripId} onBack={() => setTripId(null)} onQuarter={() => setSheet('quarter')} accent={accent} />
 
-          <div ref={bodyRef} style={{ flex: 1, overflowY: 'auto', paddingBottom: 22, WebkitOverflowScrolling: 'touch' }}>
+          <div ref={bodyRef} style={{ flex: 1, overflowY: 'auto', paddingBottom: 100, WebkitOverflowScrolling: 'touch' }}>
             {screen}
           </div>
 
@@ -166,6 +170,7 @@ function App() {
           <DaySheet open={sheet === 'day'} onClose={() => setSheet(null)} accent={accent} day={selectedDay} onAddExpense={addExpenseFor} />
           <QuarterSheet open={sheet === 'quarter'} onClose={() => setSheet(null)} accent={accent} />
           <AddExpenseSheet open={sheet === 'exp'} onClose={() => setSheet(null)} accent={accent} presetTrip={presetTrip} presetDate={presetDate} onSave={saveExpense} />
+          <EditExpenseSheet open={sheet === 'editExp'} onClose={() => setSheet(null)} accent={accent} expense={TRK.EXPENSES.find((e) => e.id === editExpenseId) || null} onSave={handleUpdateExpense} onDelete={handleDeleteExpense} />
         </div>
       </IOSDevice>
 

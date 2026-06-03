@@ -191,6 +191,23 @@
     return s;
   }
 
+  function updateExpense(id, changes) {
+    var idx = EXPENSES.findIndex(function (e) { return e.id === id; });
+    if (idx >= 0) Object.assign(EXPENSES[idx], changes);
+  }
+  function deleteExpense(id) {
+    var idx = EXPENSES.findIndex(function (e) { return e.id === id; });
+    if (idx >= 0) EXPENSES.splice(idx, 1);
+  }
+  function updateTrip(id, changes) {
+    var idx = TRIPS.findIndex(function (t) { return t.id === id; });
+    if (idx >= 0) Object.assign(TRIPS[idx], changes);
+  }
+  function deleteTrip(id) {
+    var idx = TRIPS.findIndex(function (t) { return t.id === id; });
+    if (idx >= 0) TRIPS.splice(idx, 1);
+  }
+
   window.TRK = {
     money: money, parseD: parseD, ymd: ymd, addDays: addDays, dow: dow, sameDay: sameDay,
     DIAS: DIAS, DIAS_L: DIAS_L, MESES: MESES, MESES_L: MESES_L,
@@ -200,5 +217,7 @@
     tripDays: tripDays, countableOf: countableOf, expensesOf: expensesOf, tripTotal: tripTotal,
     availableFrom: availableFrom, cumplidos: cumplidos, gastado: gastado, catTotals: catTotals,
     computeStatus: computeStatus,
+    updateExpense: updateExpense, deleteExpense: deleteExpense,
+    updateTrip: updateTrip, deleteTrip: deleteTrip,
   };
 })();

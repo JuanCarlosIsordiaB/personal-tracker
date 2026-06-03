@@ -83,7 +83,7 @@ function TripsList({ accent, onOpen, onAdd }) {
   );
 }
 
-function TripDetail({ tripId, accent, onAddExpense, onDay }) {
+function TripDetail({ tripId, accent, onAddExpense, onDay, onEditExpense }) {
   const trip = TRK.TRIPS.find((t) => t.id === tripId);
   const days = TRK.tripDays(trip);
   const cont = TRK.countableOf(trip);
@@ -156,7 +156,7 @@ function TripDetail({ tripId, accent, onAddExpense, onDay }) {
           </button>
         </div>
         <Card pad={0}>
-          {exps.map((e, i) => <ExpenseRow key={e.id} e={e} last={i === exps.length - 1} />)}
+          {exps.map((e, i) => <ExpenseRow key={e.id} e={e} last={i === exps.length - 1} onEdit={onEditExpense} />)}
         </Card>
       </div>
     </div>

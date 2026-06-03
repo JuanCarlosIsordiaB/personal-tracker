@@ -5,10 +5,10 @@ import { buildDiasParaViaje } from '@/lib/domain/diasContables'
 import { money } from '@/lib/domain/calculos'
 import { Card } from '@/components/ui/Card'
 import { Pill } from '@/components/ui/Pill'
-import { Icon, CatIcon, CAT_LABELS, CAT_COLORS } from '@/components/ui/Icon'
-import { MESES, MESES_L, parseLocal } from '@/lib/domain/quarters'
+import { Icon } from '@/components/ui/Icon'
+import { MESES, parseLocal } from '@/lib/domain/quarters'
 import { DIAS_L } from '@/lib/domain/festivos'
-import type { CatKey } from '@/components/ui/Icon'
+import { TripGastosClient } from '@/components/viajes/TripGastosClient'
 
 const ACCENT = '#2A6FDB'
 
@@ -26,7 +26,7 @@ export default async function TripDetailPage({
   const { id } = await params
   const supabase = await createClient()
 
-  const [{ data: viaje }, { data: gastos }, { data: festivosData }] =
+  const [{ data: viaje }, { data: gastos }, { data: festivosData }, { data: todosViajes }] =
     await Promise.all([
       supabase
         .from('viajes')
@@ -39,6 +39,10 @@ export default async function TripDetailPage({
         .eq('viaje_id', id)
         .order('fecha', { ascending: false }),
       supabase.from('festivos').select('fecha, nombre'),
+      supabase
+        .from('viajes')
+        .select('id, ciudad, fecha_llegada, fecha_salida')
+        .order('fecha_llegada', { ascending: true }),
     ])
 
   if (!viaje) notFound()
@@ -70,8 +74,24 @@ export default async function TripDetailPage({
     'fuera-de-viaje': 'Fuera',
   }
 
+  const gastosData = (gastos ?? []).map((g) => ({
+    id: g.id as string,
+    monto: Number(g.monto),
+    categoria: g.categoria as string,
+    fecha: g.fecha as string,
+    nota: g.nota as string | null,
+    viaje_id: g.viaje_id as string | null,
+  }))
+
+  const viajesData = (todosViajes ?? []).map((v) => ({
+    id: v.id as string,
+    ciudad: v.ciudad as string,
+    fechaLlegada: v.fecha_llegada as string,
+    fechaSalida: v.fecha_salida as string,
+  }))
+
   return (
-    <div style={{ padding: '32px 32px 48px', maxWidth: 720 }}>
+    <div className="page-container">
       {/* Back */}
       <Link
         href="/viajes"
@@ -309,113 +329,11 @@ export default async function TripDetailPage({
         </div>
 
         {/* Expenses */}
-        <div>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '0 4px 9px',
-            }}
-          >
-            <div
-              style={{
-                fontSize: 13,
-                fontWeight: 700,
-                color: '#59616E',
-                textTransform: 'uppercase',
-                letterSpacing: 0.3,
-              }}
-            >
-              Gastos del viaje
-            </div>
-          </div>
-          <Card pad={0}>
-            {(gastos ?? []).length === 0 ? (
-              <div
-                style={{
-                  textAlign: 'center',
-                  color: '#949BA6',
-                  fontSize: 14,
-                  fontWeight: 540,
-                  padding: '24px 0',
-                }}
-              >
-                Sin gastos registrados para este viaje.
-              </div>
-            ) : (
-              (gastos ?? []).map((g, i) => {
-                const cat = g.categoria as CatKey
-                const color = CAT_COLORS[cat]
-                return (
-                  <div
-                    key={g.id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 12,
-                      padding: '12px 16px',
-                      borderBottom:
-                        i < (gastos ?? []).length - 1
-                          ? '1px solid #EEF1F5'
-                          : 'none',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 38,
-                        height: 38,
-                        borderRadius: 11,
-                        background: color + '16',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <CatIcon cat={cat} size={19} />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div
-                        style={{
-                          fontSize: 15,
-                          fontWeight: 600,
-                          color: '#181B21',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }}
-                      >
-                        {g.nota || CAT_LABELS[cat]}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 12.5,
-                          color: '#949BA6',
-                          fontWeight: 540,
-                          marginTop: 1,
-                        }}
-                      >
-                        {CAT_LABELS[cat]} · {g.fecha}
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 15.5,
-                        fontWeight: 700,
-                        color: '#181B21',
-                        fontVariantNumeric: 'tabular-nums',
-                        flexShrink: 0,
-                      }}
-                    >
-                      {money(Number(g.monto))}
-                    </div>
-                  </div>
-                )
-              })
-            )}
-          </Card>
-        </div>
+        <TripGastosClient
+          gastos={gastosData}
+          viajeId={id}
+          viajes={viajesData}
+        />
       </div>
     </div>
   )
