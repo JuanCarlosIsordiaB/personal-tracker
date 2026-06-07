@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentQuarterId } from '@/lib/domain/quarters'
 import { GastosClient } from '@/components/gastos/GastosClient'
+import { QuarterNav } from '@/components/shell/QuarterNav'
 
 export default async function GastosPage({
   searchParams,
@@ -61,29 +62,32 @@ export default async function GastosPage({
 
   return (
     <div className="page-container">
-      <div style={{ marginBottom: 28 }}>
-        <h1
-          style={{
-            fontSize: 28,
-            fontWeight: 770,
-            color: '#181B21',
-            letterSpacing: -0.6,
-            margin: 0,
-            lineHeight: 1.1,
-          }}
-        >
-          Gastos
-        </h1>
-        <p
-          style={{
-            fontSize: 14,
-            color: '#949BA6',
-            fontWeight: 500,
-            margin: '4px 0 0',
-          }}
-        >
-          {quarterId.replace('-', ' · ')}
-        </p>
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, marginBottom: 28 }}>
+        <div>
+          <h1
+            style={{
+              fontSize: 28,
+              fontWeight: 770,
+              color: '#181B21',
+              letterSpacing: -0.6,
+              margin: 0,
+              lineHeight: 1.1,
+            }}
+          >
+            Gastos
+          </h1>
+          <p
+            style={{
+              fontSize: 14,
+              color: '#949BA6',
+              fontWeight: 500,
+              margin: '4px 0 0',
+            }}
+          >
+            {quarterId.replace('-', ' · ')}
+          </p>
+        </div>
+        <QuarterNav currentId={quarterId} />
       </div>
 
       <GastosClient

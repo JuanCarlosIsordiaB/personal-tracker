@@ -51,6 +51,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
 @keyframes sheetIn {
   from { transform: translateY(38px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }

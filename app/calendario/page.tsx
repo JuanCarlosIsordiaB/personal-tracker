@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentQuarterId, parseLocal, formatYMD, quarterBoundsFromId } from '@/lib/domain/quarters'
 import { buildDiasContables } from '@/lib/domain/diasContables'
-import { diasCumplidos } from '@/lib/domain/calculos'
+import { diasCumplidos, DEFAULT_META_DIAS } from '@/lib/domain/calculos'
 import { Card } from '@/components/ui/Card'
 import { Pill } from '@/components/ui/Pill'
 import { CalLegend } from '@/components/calendario/CalLegend'
@@ -40,7 +40,7 @@ export default async function CalendarioPage({
   const quarter = quarterDb ?? {
     id: quarterId,
     ...quarterBoundsFromId(quarterId),
-    meta_dias: 36,
+    meta_dias: DEFAULT_META_DIAS,
     limite: null,
   }
 

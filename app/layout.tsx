@@ -22,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={hanken.variable} style={{ height: '100%' }}>
-      <body style={{ height: '100%', display: 'flex', flexDirection: 'row', background: '#F3F5F8' }}>
+      <body suppressHydrationWarning style={{ height: '100%', display: 'flex', flexDirection: 'row', background: '#F3F5F8' }}>
         <Sidebar />
         <main style={{ flex: 1, overflowY: 'auto', minHeight: '100vh' }}>
           {children}

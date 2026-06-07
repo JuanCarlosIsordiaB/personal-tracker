@@ -2,6 +2,8 @@ import type { DiaContable } from './diasContables'
 
 export type Nivel = 'verde' | 'amarillo' | 'rojo'
 
+export const DEFAULT_META_DIAS = 36
+
 // R2: count days where estado === 'cuenta'
 export function diasCumplidos(dias: DiaContable[]): number {
   return dias.filter((d) => d.estado === 'cuenta').length
