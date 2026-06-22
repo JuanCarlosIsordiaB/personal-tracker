@@ -156,12 +156,11 @@ export function MonthGrid({
             bg = '#EFF1F4'
             col = '#949BA6'
             weight = 600
-          } else if (dia?.estado === 'domingo' && inTrip) {
-            // Domingo dentro de un viaje: tinte azul muy suave, texto gris
+          } else if ((dia?.estado === 'domingo' || dia?.estado === 'sabado') && inTrip) {
             bg = accent + '12'
             col = '#949BA6'
             weight = 500
-          } else if (dia?.estado === 'domingo') {
+          } else if (dia?.estado === 'domingo' || dia?.estado === 'sabado') {
             col = '#949BA6'
           }
 
@@ -254,7 +253,7 @@ export function MonthGrid({
                     }}
                   />
                 )}
-                {dia?.estado === 'domingo' && inTrip && (
+                {(dia?.estado === 'domingo' || dia?.estado === 'sabado') && inTrip && (
                   <span
                     style={{
                       position: 'absolute',

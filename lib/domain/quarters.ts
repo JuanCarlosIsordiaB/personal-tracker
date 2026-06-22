@@ -8,20 +8,22 @@ export interface QuarterBounds {
 }
 
 // R0: date → fiscal quarter ID
-// FY: Jul–Dec → FY of (year+1), Jan–Jun → FY of same year
-// Q1=Jul-Sep, Q2=Oct-Dec, Q3=Jan-Mar, Q4=Apr-Jun
+// FY: Feb–Dec → FY of (year+1), Jan → FY of same year
+// Q1=1-feb/2-may, Q2=3-may/1-ago, Q3=2-ago/31-oct, Q4=1-nov/30-ene
 export function dateToQuarterId(date: Date | string): QuarterId {
   const d = typeof date === 'string' ? parseLocal(date) : date
   const month = d.getMonth() + 1 // 1-12
+  const day = d.getDate()
   const year = d.getFullYear()
 
-  const fy = month >= 7 ? year + 1 : year
+  // FY = year+1 for Feb–Dec; FY = year for Jan
+  const fy = month === 1 ? year : year + 1
 
   let q: number
-  if (month >= 7 && month <= 9) q = 1
-  else if (month >= 10 && month <= 12) q = 2
-  else if (month >= 1 && month <= 3) q = 3
-  else q = 4
+  if (month >= 2 && (month < 5 || (month === 5 && day <= 2))) q = 1
+  else if ((month === 5 && day >= 3) || (month >= 6 && month < 8) || (month === 8 && day <= 1)) q = 2
+  else if ((month === 8 && day >= 2) || month === 9 || month === 10) q = 3
+  else q = 4 // Nov–Dec and Jan
 
   return `FY${String(fy).slice(-2)}-Q${q}`
 }
@@ -36,7 +38,7 @@ export function parseLocal(s: string): Date {
   return new Date(y, m - 1, d)
 }
 
-// Available Mon-Sat days from `from` (inclusive) to `to` (inclusive), minus holidays
+// Available Mon-Fri days from `from` (inclusive) to `to` (inclusive), minus holidays
 export function diasDisponiblesRestantes(
   from: Date,
   to: Date,
@@ -53,7 +55,7 @@ export function diasDisponiblesRestantes(
   let d = startOfDay(start)
   while (!isAfter(d, end)) {
     const iso = formatYMD(d)
-    if (!isSunday(d) && !festivosSet.has(iso)) {
+    if (!isSunday(d) && d.getDay() !== 6 && !festivosSet.has(iso)) {
       count++
     }
     d = addDays(d, 1)
@@ -88,17 +90,22 @@ export function quarterTitle(fechaInicio: string, fechaFin: string): string {
 export { MESES, MESES_L }
 
 // Reconstruct dates from a quarter ID without hitting the DB
-// 'FY26-Q2' → { fecha_inicio: '2025-10-01', fecha_fin: '2025-12-31' }
+// FY27 example (year = fy-1 = 2026):
+//   Q1: 2026-02-01 / 2026-05-02
+//   Q2: 2026-05-03 / 2026-08-01
+//   Q3: 2026-08-02 / 2026-10-31
+//   Q4: 2026-11-01 / 2027-01-30
 export function quarterBoundsFromId(id: QuarterId): { fecha_inicio: string; fecha_fin: string } {
   const m = id.match(/^FY(\d+)-Q([1-4])$/)
   if (!m) throw new Error(`Invalid quarter ID: ${id}`)
   const fy = parseInt(m[1]) + (parseInt(m[1]) < 100 ? 2000 : 0)
   const q = parseInt(m[2])
+  const y = fy - 1 // calendar year in which the FY starts (Feb)
   switch (q) {
-    case 1: return { fecha_inicio: `${fy - 1}-07-01`, fecha_fin: `${fy - 1}-09-30` }
-    case 2: return { fecha_inicio: `${fy - 1}-10-01`, fecha_fin: `${fy - 1}-12-31` }
-    case 3: return { fecha_inicio: `${fy}-01-01`,     fecha_fin: `${fy}-03-31` }
-    default: return { fecha_inicio: `${fy}-04-01`,    fecha_fin: `${fy}-06-30` }
+    case 1: return { fecha_inicio: `${y}-02-01`, fecha_fin: `${y}-05-02` }
+    case 2: return { fecha_inicio: `${y}-05-03`, fecha_fin: `${y}-08-01` }
+    case 3: return { fecha_inicio: `${y}-08-02`, fecha_fin: `${y}-10-31` }
+    default: return { fecha_inicio: `${y}-11-01`, fecha_fin: `${fy}-01-30` }
   }
 }
 

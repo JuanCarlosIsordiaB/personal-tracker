@@ -236,7 +236,7 @@ export function AddTripSheet({
                   marginTop: 9,
                 }}
               >
-                Se descuentan domingos y festivos automáticamente.
+                Se descuentan domingos, sábados y festivos automáticamente.
               </div>
             </div>
           ) : (

@@ -4,11 +4,11 @@ interface WeeksVizProps {
 }
 
 export function WeeksViz({ value, accent = '#2A6FDB' }: WeeksVizProps) {
-  const weeks = 6
-  const perWeek = 6
+  const weeks = 8
+  const perWeek = 5
   const cells: boolean[] = []
   for (let i = 0; i < weeks * perWeek; i++) cells.push(i < value)
-  const dl = ['L', 'M', 'M', 'J', 'V', 'S']
+  const dl = ['L', 'M', 'M', 'J', 'V']
 
   return (
     <div style={{ width: '100%' }}>

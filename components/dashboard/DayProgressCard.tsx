@@ -60,7 +60,7 @@ export function DayProgressCard({
               whiteSpace: 'nowrap',
             }}
           >
-            Lun–Sáb · {meta} días = 6 semanas
+            Lun–Vie · {meta} días
           </div>
         </div>
         <Pill level={nivel}>

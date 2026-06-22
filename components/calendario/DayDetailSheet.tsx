@@ -47,6 +47,7 @@ const ESTADO_BADGE: Record<
   cuenta:           { text: 'Cuenta como día de oficina', level: 'verde' },
   festivo:          { text: 'Festivo', level: 'amarillo' },
   domingo:          { text: 'Domingo · no cuenta', muted: true },
+  sabado:           { text: 'Sábado · no cuenta', muted: true },
   'fuera-de-viaje': { text: 'Fuera de viaje · no cuenta', muted: true },
 }
 

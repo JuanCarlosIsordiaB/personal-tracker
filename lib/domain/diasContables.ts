@@ -1,7 +1,7 @@
 import { addDays, isSunday, isAfter } from 'date-fns'
 import { parseLocal, formatYMD } from './quarters'
 
-export type DiaEstado = 'cuenta' | 'domingo' | 'festivo' | 'fuera-de-viaje'
+export type DiaEstado = 'cuenta' | 'domingo' | 'sabado' | 'festivo' | 'fuera-de-viaje'
 
 export interface DiaContable {
   fecha: string // 'YYYY-MM-DD'
@@ -18,7 +18,7 @@ export interface ViajeRange {
 }
 
 // R1: build day-by-day array for a date range
-// A day 'cuenta' iff: not Sunday AND not holiday AND within a trip
+// A day 'cuenta' iff: not Sunday, not Saturday AND not holiday AND within a trip
 export function buildDiasContables(
   from: string,
   to: string,
@@ -42,6 +42,8 @@ export function buildDiasContables(
 
     if (isSunday(current)) {
       estado = 'domingo'
+    } else if (dow === 6) {
+      estado = 'sabado'
     } else if (festivoNombre) {
       estado = 'festivo'
     } else if (!viaje) {
