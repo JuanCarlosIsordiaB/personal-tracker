@@ -9,6 +9,7 @@ import { Icon } from '@/components/ui/Icon'
 import { MESES, parseLocal } from '@/lib/domain/quarters'
 import { DIAS_L } from '@/lib/domain/festivos'
 import { TripGastosClient } from '@/components/viajes/TripGastosClient'
+import { DeleteViajeButton } from '@/components/viajes/DeleteViajeButton'
 
 const ACCENT = '#2A6FDB'
 
@@ -92,23 +93,32 @@ export default async function TripDetailPage({
 
   return (
     <div className="page-container">
-      {/* Back */}
-      <Link
-        href="/viajes"
+      {/* Back + delete */}
+      <div
         style={{
-          display: 'inline-flex',
+          display: 'flex',
           alignItems: 'center',
-          gap: 4,
-          fontSize: 14,
-          fontWeight: 600,
-          color: '#2A6FDB',
-          textDecoration: 'none',
+          justifyContent: 'space-between',
           marginBottom: 20,
         }}
       >
-        <Icon name="chevL" size={16} color="#2A6FDB" />
-        Viajes
-      </Link>
+        <Link
+          href="/viajes"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+            fontSize: 14,
+            fontWeight: 600,
+            color: '#2A6FDB',
+            textDecoration: 'none',
+          }}
+        >
+          <Icon name="chevL" size={16} color="#2A6FDB" />
+          Viajes
+        </Link>
+        <DeleteViajeButton viajeId={id} />
+      </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* Summary */}

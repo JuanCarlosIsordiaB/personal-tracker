@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentQuarterId, quarterLabel, quarterTitle, diasDisponiblesRestantes, parseLocal, formatYMD } from '@/lib/domain/quarters'
 import { buildDiasContables } from '@/lib/domain/diasContables'
@@ -26,7 +27,8 @@ export default async function DashboardPage({
     .order('fecha_inicio', { ascending: false })
 
   const quarters = allQuarters ?? []
-  const currentId = qParam ?? getCurrentQuarterId()
+  const todayQuarterId = getCurrentQuarterId()
+  const currentId = qParam ?? todayQuarterId
 
   // Find the quarter to display (fallback to first available)
   const quarter =
@@ -146,9 +148,27 @@ export default async function DashboardPage({
                 color: '#949BA6',
                 fontWeight: 500,
                 margin: '4px 0 0',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
               }}
             >
-              {titulo} · {quarterLabel(quarter.id)}
+              <span>
+                {titulo} · {quarterLabel(quarter.id)}
+              </span>
+              {quarter.id !== todayQuarterId && (
+                <Link
+                  href={`/dashboard?quarter=${todayQuarterId}`}
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: ACCENT,
+                    textDecoration: 'none',
+                  }}
+                >
+                  Ir a Q actual
+                </Link>
+              )}
             </p>
           </div>
           <QuarterSelector quarters={quarters} currentId={quarter.id} />

@@ -30,7 +30,7 @@ export function BudgetCard({
     proyeccion && limite ? Math.min(1, proyeccion / limite) : 0
 
   return (
-    <Link href="/gastos" style={{ textDecoration: 'none', display: 'block' }}>
+    <Link href="/viajes" style={{ textDecoration: 'none', display: 'block' }}>
       <Card pad={18} style={{ cursor: 'pointer' }}>
         <div
           style={{

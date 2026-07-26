@@ -9,7 +9,6 @@ const NAV: { href: string; label: string; icon: IconName }[] = [
   { href: '/dashboard',  label: 'Inicio',     icon: 'home'     },
   { href: '/calendario', label: 'Calendario', icon: 'calendar' },
   { href: '/viajes',     label: 'Viajes',     icon: 'trips'    },
-  { href: '/gastos',     label: 'Gastos',     icon: 'wallet'   },
 ]
 
 const ACCENT = '#2A6FDB'

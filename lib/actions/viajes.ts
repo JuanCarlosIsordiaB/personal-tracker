@@ -66,6 +66,7 @@ export async function createViaje(
 
 export async function deleteViaje(id: string): Promise<void> {
   const supabase = await createClient()
+  await supabase.from('gastos').delete().eq('viaje_id', id)
   await supabase.from('viajes').delete().eq('id', id)
   revalidatePath('/', 'layout')
 }

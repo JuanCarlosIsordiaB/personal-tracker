@@ -16,8 +16,8 @@ export function dateToQuarterId(date: Date | string): QuarterId {
   const day = d.getDate()
   const year = d.getFullYear()
 
-  // FY = year+1 for Feb–Dec; FY = year for Jan
-  const fy = month === 1 ? year : year + 1
+  // FY = year for Feb–Dec; FY = year-1 for Jan (tail end of the FY started the previous Feb)
+  const fy = month === 1 ? year - 1 : year
 
   let q: number
   if (month >= 2 && (month < 5 || (month === 5 && day <= 2))) q = 1
@@ -73,24 +73,26 @@ export function quarterLabel(id: QuarterId): string {
   return id.replace('-', ' · ')
 }
 
-// Quarter title: 'Oct – Dic 2025'
+// Quarter title: 'Feb 1 – May 2 2026'
 const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
 const MESES_L = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
 
 export function quarterTitle(fechaInicio: string, fechaFin: string): string {
   const a = parseLocal(fechaInicio)
   const b = parseLocal(fechaFin)
-  const mA = MESES_L[a.getMonth()]
+  const mA = MESES[a.getMonth()]
   const mA2 = mA.charAt(0).toUpperCase() + mA.slice(1)
-  const mB = MESES_L[b.getMonth()]
+  const mB = MESES[b.getMonth()]
   const mB2 = mB.charAt(0).toUpperCase() + mB.slice(1)
-  return `${mA2} – ${mB2} ${b.getFullYear()}`
+  const sameYear = a.getFullYear() === b.getFullYear()
+  const inicio = sameYear ? `${mA2} ${a.getDate()}` : `${mA2} ${a.getDate()} ${a.getFullYear()}`
+  return `${inicio} – ${mB2} ${b.getDate()} ${b.getFullYear()}`
 }
 
 export { MESES, MESES_L }
 
 // Reconstruct dates from a quarter ID without hitting the DB
-// FY27 example (year = fy-1 = 2026):
+// FY26 example (year = fy = 2026):
 //   Q1: 2026-02-01 / 2026-05-02
 //   Q2: 2026-05-03 / 2026-08-01
 //   Q3: 2026-08-02 / 2026-10-31
@@ -100,12 +102,12 @@ export function quarterBoundsFromId(id: QuarterId): { fecha_inicio: string; fech
   if (!m) throw new Error(`Invalid quarter ID: ${id}`)
   const fy = parseInt(m[1]) + (parseInt(m[1]) < 100 ? 2000 : 0)
   const q = parseInt(m[2])
-  const y = fy - 1 // calendar year in which the FY starts (Feb)
+  const y = fy // calendar year in which the FY starts (Feb)
   switch (q) {
     case 1: return { fecha_inicio: `${y}-02-01`, fecha_fin: `${y}-05-02` }
     case 2: return { fecha_inicio: `${y}-05-03`, fecha_fin: `${y}-08-01` }
     case 3: return { fecha_inicio: `${y}-08-02`, fecha_fin: `${y}-10-31` }
-    default: return { fecha_inicio: `${y}-11-01`, fecha_fin: `${fy}-01-30` }
+    default: return { fecha_inicio: `${y}-11-01`, fecha_fin: `${y + 1}-01-30` }
   }
 }
 
